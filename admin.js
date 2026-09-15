@@ -1,0 +1,12 @@
+const login=document.querySelector("#login"),panel=document.querySelector("#panel"),msg=document.querySelector("#loginMsg");
+async function init(){const {data}=await db.auth.getSession();if(data.session)show(data.session);else showLogin()}
+function show(s){login.hidden=true;panel.hidden=false;document.querySelector("#who").textContent=s.user.email;loadCodes()}
+function showLogin(){login.hidden=false;panel.hidden=true}
+document.querySelector("#loginBtn").onclick=async()=>{msg.textContent="جارٍ الدخول...";const {data,error}=await db.auth.signInWithPassword({email:email.value,password:password.value});if(error)msg.textContent="بيانات الدخول غير صحيحة.";else show(data.session)}
+document.querySelector("#logout").onclick=async()=>{await db.auth.signOut();showLogin()}
+document.querySelector("#addBtn").onclick=async()=>{const addMsg=document.querySelector("#addMsg");const {error}=await db.from("codes").insert({store:store.value.trim(),code:code.value.trim(),discount:discount.value.trim(),link:link.value.trim(),expires:expires.value||null,description:description.value.trim(),active:true});if(error)addMsg.textContent="حدث خطأ: "+error.message;else{addMsg.textContent="تمت إضافة الكود ✓";["store","code","discount","link","expires","description"].forEach(id=>document.querySelector("#"+id).value="");loadCodes()}}
+async function loadCodes(){const {data,error}=await db.from("codes").select("*").order("created_at",{ascending:false});const box=document.querySelector("#adminGrid");if(error){box.textContent=error.message;return}box.innerHTML=(data||[]).map(o=>`<div class="row"><div><b>${esc(o.store)}</b> — ${esc(o.code)}<small>${esc(o.discount||"")}</small></div><div><button onclick="toggleCode('${o.id}',${!o.active})">${o.active?"تعطيل":"تفعيل"}</button><button class="danger" onclick="deleteCode('${o.id}')">حذف</button></div></div>`).join("")}
+window.toggleCode=async(id,v)=>{await db.from("codes").update({active:v}).eq("id",id);loadCodes()}
+window.deleteCode=async id=>{if(confirm("حذف هذا الكود؟")){await db.from("codes").delete().eq("id",id);loadCodes()}}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+init();
