@@ -70,10 +70,12 @@ function render() {
         </div>
         <h3>${esc(o.discount || "عرض")}</h3>
         <p>${esc(o.description || "")}</p>
-        <div class="code">
-          <b>${esc(o.code)}</b>
-          <button onclick="copyCode('${encodeURIComponent(o.code)}')">نسخ</button>
-        </div>
+        ${o.code ? `
+<div class="code">
+  <b>${esc(o.code)}</b>
+  <button onclick="copyCode('${encodeURIComponent(o.code)}')">نسخ</button>
+</div>
+` : ""}
         <a class="go" href="${esc(o.link)}" target="_blank" rel="nofollow sponsored noopener">
           استخدام العرض ↗
         </a>
